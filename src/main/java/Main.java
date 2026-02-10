@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -8,9 +9,12 @@ public class Main {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String input;
 
-        while ((input = reader.readLine()) != null) {
-            System.out.print("$ ");
+        while (true) {
+            System.out.write("$ ".getBytes());;
             System.out.flush();
+            input = reader.readLine();
+            String[] arr = input.split(" ");
+            System.out.println(Arrays.toString(arr));
         }
     }
 }
