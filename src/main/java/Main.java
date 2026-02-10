@@ -14,7 +14,10 @@ public class Main {
             System.out.flush();
             input = reader.readLine();
             String[] arr = input.split(" ");
-            System.out.println(Arrays.toString(arr));
+            //System.out.println(Arrays.toString(arr));
+            if(arr.length==2 && arr[0] .equals("exit")  && arr[1].equals("0")) {
+            	System.exit(0);
+            }
         }
     }
 }
