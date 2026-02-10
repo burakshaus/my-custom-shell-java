@@ -20,6 +20,7 @@ public class Main {
                 if (arr.length == 2) {
                     String echoString = (String)arr[1] + "\n";
                     System.out.write(echoString.getBytes());
+                    // for pr
                     System.out.flush();
                     wrote = false;
                 } else {
