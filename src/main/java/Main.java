@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        System.out.print("$ ");
-        System.out.flush(); 
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         String input;
 
@@ -17,6 +15,10 @@ public class Main {
             //System.out.println(Arrays.toString(arr));
             if(arr.length==2 && arr[0] .equals("exit")  && arr[1].equals("0")) {
             	System.exit(0);
+            }else if(input.length()>=1) {
+            	String output = input + ": Unknown command\n";
+            	System.out.write(output.getBytes());
+            	System.out.flush();
             }
         }
     }
