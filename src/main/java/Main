@@ -11,16 +11,17 @@ public class Main {
             System.out.write("$ ".getBytes());;
             System.out.flush();
             input = reader.readLine();
-            String[] arr = input.split(" ");
+            String[] array = input.split(" ");
             boolean wrote = true;
-            //System.out.println(Arrays.toString(arr));
-            if(arr.length==2 && arr[0] .equals("exit")  && arr[1].equals("0")) {
+            //System.out.println(Arrays.toString(array));
+            if(array.length==2 && array[0] .equals("exit")  && array[1].equals("0")) {
             	System.exit(0);
-            }else if(arr.length >=2 && arr[0].equals("echo") && wrote){
-                if (arr.length == 2) {
-                    String echoString = (String)arr[1] + "\n";
+            }else if(array.length >=2 && array[0].equals("echo") && wrote){
+                if (array.length == 2) {
+                    String echoString = getEchoString(array[1]);
+                    //= (String)array[1] + "\n";
                     System.out.write(echoString.getBytes());
-                    // for pr
+               
                     System.out.flush();
                     wrote = false;
                 } else {
@@ -34,5 +35,21 @@ public class Main {
             	System.out.flush();
             }
         }
+    }
+    static String getEchoString(String string){
+    	String returnStr = "";
+    	if(!string.startsWith("\"")){
+    		return "invalid";
+    	}else if(string.startsWith("\"")){
+    	for (int i = 1; i < string.length(); i++){
+    			returnStr += string.charAt(i);
+    		}
+    	
+    	}else {
+    		return "error here";
+    	}
+    	
+    	return returnStr;
+    		
     }
 }
