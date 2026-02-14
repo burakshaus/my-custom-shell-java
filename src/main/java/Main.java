@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class Main {
@@ -12,44 +13,27 @@ public class Main {
             System.out.flush();
             input = reader.readLine();
             String[] array = input.split(" ");
-            boolean wrote = true;
             //System.out.println(Arrays.toString(array));
-            if(array.length==2 && array[0] .equals("exit")  && array[1].equals("0")) {
-            	System.exit(0);
-            }else if(array.length >=2 && array[0].equals("echo") && wrote){
-                if (array.length == 2) {
-                    String echoString = getEchoString(array[1]);
-                    //= (String)array[1] + "\n";
-                    System.out.write(echoString.getBytes());
-               
+            if (array[0].equals("echo")){
+                String retecho;
+                if (array.length == 2){
+                    retecho = array[1];
+                    if (retecho.startsWith("\"") && retecho.endsWith("\"")){
+                        retecho = retecho.substring(0,retecho.length()-1);
+                    }
+                    retecho+= "\n";
+                    System.out.write(retecho.getBytes());
                     System.out.flush();
-                    wrote = false;
-                } else {
-                    continue;
+                } else if (array.length>2){
+
                 }
             }
-            
-            else if(input.length()>=1 && wrote) {
+
+            else if(input.length()>=1) {
             	String output = input + ": Unknown command\n";
             	System.out.write(output.getBytes());
             	System.out.flush();
-            }
+            } else continue;
         }
-    }
-    static String getEchoString(String string){
-    	String returnStr = "";
-    	if(!string.startsWith("\"")){
-    		return "invalid";
-    	}else if(string.startsWith("\"")){
-    	for (int i = 1; i < string.length(); i++){
-    			returnStr += string.charAt(i);
-    		}
-    	
-    	}else {
-    		return "error here";
-    	}
-    	
-    	return returnStr;
-    		
     }
 }
