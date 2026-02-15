@@ -13,19 +13,21 @@ public class Main {
             System.out.flush();
             input = reader.readLine();
             String[] array = input.split(" ");
-            //System.out.println(Arrays.toString(array));
             if (array[0].equals("echo")){
-                String retecho;
+                String retecho = "";
                 if (array.length == 2){
                     retecho = array[1];
                     if (retecho.startsWith("\"") && retecho.endsWith("\"")){
-                        retecho = retecho.substring(0,retecho.length()-1);
+                        retecho = retecho.substring(1,retecho.length()-1);
                     }
                     retecho+= "\n";
                     System.out.write(retecho.getBytes());
                     System.out.flush();
                 } else if (array.length>2){
-
+                    retecho = input.substring(4,input.length());
+                    retecho += "\n";
+                    System.out.write(retecho.getBytes());
+                    System.out.flush();
                 }
             }
 
