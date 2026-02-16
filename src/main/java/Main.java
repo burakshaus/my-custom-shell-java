@@ -35,6 +35,8 @@ public class Main {
             	String output = input + ": Unknown command\n";
             	System.out.write(output.getBytes());
             	System.out.flush();
+            } else if (array[0].equals("type")) {
+                
             } else continue;
         }
     }
