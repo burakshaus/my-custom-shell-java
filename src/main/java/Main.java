@@ -9,35 +9,52 @@ public class Main {
         String input;
 
         while (true) {
-            System.out.write("$ ".getBytes());;
+            System.out.write("$ ".getBytes());
+            ;
             System.out.flush();
             input = reader.readLine();
             String[] array = input.split(" ");
-            if (array[0].equals("echo")){
+            if (array[0].equals("echo")) {
                 String retecho = "";
-                if (array.length == 2){
+                if (array.length == 2) {
                     retecho = array[1];
-                    if (retecho.startsWith("\"") && retecho.endsWith("\"")){
-                        retecho = retecho.substring(1,retecho.length()-1);
+                    if (retecho.startsWith("\"") && retecho.endsWith("\"")) {
+                        retecho = retecho.substring(1, retecho.length() - 1);
                     }
-                    retecho+= "\n";
+                    retecho += "\n";
                     System.out.write(retecho.getBytes());
                     System.out.flush();
-                } else if (array.length>2){
-                    retecho = input.substring(4,input.length());
+                } else if (array.length > 2) {
+                    retecho = input.substring(4, input.length());
                     retecho += "\n";
                     System.out.write(retecho.getBytes());
                     System.out.flush();
                 }
-            }
+            } else if (array[0].equals("type") && array.length == 2) {
+                String retString = "";
+                array[1] = array[1].trim();
+                if (array[1].equals("echo")) {
+                    System.out.write("echo is a shell builtin\n".getBytes());
+                    System.out.flush();
+                } else if (array[1].equals("exit")) {
+                    System.out.write("exit is a shell builtin\n".getBytes());
+                    System.out.flush();
+                } else if (array[1].equals("type")) {
+                    System.out.write("type is a shell builtin\n".getBytes());
+                    System.out.flush();
+                } else {
+                    retString += array[1];
+                    retString += ": not found\n";
+                    System.out.write(retString.getBytes());
+                    System.out.flush();
+                }
 
-            else if(input.length()>=1) {
-            	String output = input + ": Unknown command\n";
-            	System.out.write(output.getBytes());
-            	System.out.flush();
-            } else if (array[0].equals("type")) {
-                
+            }else if (input.length() >= 1) {
+                String output = input + ": Unknown command\n";
+                System.out.write(output.getBytes());
+                System.out.flush();
             } else continue;
         }
     }
 }
+
