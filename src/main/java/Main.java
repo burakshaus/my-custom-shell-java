@@ -173,10 +173,53 @@ public class Main {
     }
 
     /**
-     * Handle the 'cd' command (placeholder for future implementation)
+     * Handle the 'cd' command
      */
     private static void handleCd(String[] args) {
-        print("cd: not yet implemented\n");
+        String targetPath;
+
+        // If no arguments, go to HOME directory
+        if (args.length == 0) {
+            targetPath = System.getenv("HOME");
+            if (targetPath == null) {
+                targetPath = System.getProperty("user.home");
+            }
+        } else {
+            targetPath = args[0];
+
+            // Handle ~ expansion
+            if (targetPath.equals("~") || targetPath.startsWith("~/")) {
+                String home = System.getenv("HOME");
+                if (home == null) {
+                    home = System.getProperty("user.home");
+                }
+                if (targetPath.equals("~")) {
+                    targetPath = home;
+                } else {
+                    targetPath = home + targetPath.substring(1);
+                }
+            }
+        }
+
+        // Resolve the path
+        Path path = Paths.get(targetPath);
+        if (!path.isAbsolute()) {
+            path = Paths.get(System.getProperty("user.dir")).resolve(targetPath).normalize();
+        }
+
+        // Check if the directory exists
+        if (!Files.exists(path)) {
+            print("cd: " + args[0] + ": No such file or directory\n");
+            return;
+        }
+
+        if (!Files.isDirectory(path)) {
+            print("cd: " + args[0] + ": Not a directory\n");
+            return;
+        }
+
+        // Change the current directory
+        System.setProperty("user.dir", path.toAbsolutePath().toString());
     }
 
     /**
@@ -199,6 +242,7 @@ public class Main {
             print(command + ": command not found\n");
         }
     }
+
     /**
      * Search for an executable in PATH directories
      */
