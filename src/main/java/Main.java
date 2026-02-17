@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 // //
-
+//
 public class Main {
     private static final String[] BUILTIN_COMMANDS = { "echo", "exit", "type", "pwd", "cd" };
 
@@ -183,6 +183,14 @@ public class Main {
      * Execute an external command from PATH
      */
     private static void executeExternalCommand(String command, String[] args, String[] pathDirs) {
+        if (command.contains("/")) {
+            Path path = Paths.get(command);
+            if (Files.exists(path)) {
+                runProcess(command, args);
+                return;
+            }
+        }
+
         String executablePath = findExecutableInPath(command, pathDirs);
 
         if (executablePath != null) {
@@ -191,7 +199,6 @@ public class Main {
             print(command + ": command not found\n");
         }
     }
-
     /**
      * Search for an executable in PATH directories
      */
