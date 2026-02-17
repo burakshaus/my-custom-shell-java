@@ -1,60 +1,258 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main {
-    public static void main(String[] args) throws Exception {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String input;
+    private static final String[] BUILTIN_COMMANDS = { "echo", "exit", "type", "pwd", "cd" };
 
-        while (true) {
-            System.out.write("$ ".getBytes());
-            ;
+    public static void main(String[] args) {
+        runShell();
+    }
+
+    /**
+     * Main REPL loop for the shell
+     */
+    private static void runShell() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+            String pathEnv = System.getenv("PATH");
+            String[] pathDirs = pathEnv != null ? pathEnv.split(":") : new String[0];
+
+            while (true) {
+                printPrompt();
+                String input = reader.readLine();
+
+                if (input == null) {
+                    break; // EOF
+                }
+
+                handleCommand(input.trim(), pathDirs);
+            }
+        } catch (IOException e) {
+            print("Error reading input: " + e.getMessage() + "\n");
+        }
+    }
+
+    /**
+     * Parse and execute a command
+     */
+    private static void handleCommand(String input, String[] pathDirs) {
+        if (input.isEmpty()) {
+            return;
+        }
+
+        String[] tokens = parseInput(input);
+        String command = tokens[0];
+        String[] args = new String[tokens.length - 1];
+        System.arraycopy(tokens, 1, args, 0, args.length);
+
+        // Check if it's a builtin command
+        if (isBuiltinCommand(command)) {
+            executeBuiltin(command, args, input, pathDirs);
+        } else {
+            // Try to execute as external command
+            executeExternalCommand(command, args, pathDirs);
+        }
+    }
+
+    /**
+     * Parse input string into tokens (simplified - splits on spaces)
+     */
+    private static String[] parseInput(String input) {
+        return input.split(" ");
+    }
+
+    /**
+     * Check if a command is a shell builtin
+     */
+    private static boolean isBuiltinCommand(String command) {
+        for (String builtin : BUILTIN_COMMANDS) {
+            if (builtin.equals(command)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Execute a builtin command
+     */
+    private static void executeBuiltin(String command, String[] args, String fullInput, String[] pathDirs) {
+        switch (command) {
+            case "echo":
+                handleEcho(args, fullInput);
+                break;
+            case "type":
+                handleType(args, pathDirs);
+                break;
+            case "exit":
+                handleExit(args);
+                break;
+            case "pwd":
+                handlePwd();
+                break;
+            case "cd":
+                handleCd(args);
+                break;
+            default:
+                print(command + ": builtin not implemented\n");
+        }
+    }
+
+    /**
+     * Handle the 'echo' command
+     */
+    private static void handleEcho(String[] args, String fullInput) {
+        if (args.length == 0) {
+            print("\n");
+            return;
+        }
+
+        String output;
+        if (args.length == 1) {
+            output = removeQuotes(args[0]);
+        } else {
+            // Multiple arguments - use everything after "echo "
+            output = fullInput.substring(5); // "echo ".length() == 5
+        }
+
+        print(output + "\n");
+    }
+
+    /**
+     * Handle the 'type' command
+     */
+    private static void handleType(String[] args, String[] pathDirs) {
+        if (args.length != 1) {
+            print("type: wrong number of arguments\n");
+            return;
+        }
+
+        String command = args[0].trim();
+
+        // Check if it's a builtin
+        if (isBuiltinCommand(command)) {
+            print(command + " is a shell builtin\n");
+            return;
+        }
+
+        // Check if it exists in PATH
+        String executablePath = findExecutableInPath(command, pathDirs);
+        if (executablePath != null) {
+            print(command + " is " + executablePath + "\n");
+        } else {
+            print(command + ": not found\n");
+        }
+    }
+
+    /**
+     * Handle the 'exit' command
+     */
+    private static void handleExit(String[] args) {
+        int exitCode = 0;
+        if (args.length > 0) {
+            try {
+                exitCode = Integer.parseInt(args[0]);
+            } catch (NumberFormatException e) {
+                exitCode = 1;
+            }
+        }
+        System.exit(exitCode);
+    }
+
+    /**
+     * Handle the 'pwd' command (placeholder for future implementation)
+     */
+    private static void handlePwd() {
+        String currentDir = System.getProperty("user.dir");
+        print(currentDir + "\n");
+    }
+
+    /**
+     * Handle the 'cd' command (placeholder for future implementation)
+     */
+    private static void handleCd(String[] args) {
+        print("cd: not yet implemented\n");
+    }
+
+    /**
+     * Execute an external command from PATH
+     */
+    private static void executeExternalCommand(String command, String[] args, String[] pathDirs) {
+        String executablePath = findExecutableInPath(command, pathDirs);
+
+        if (executablePath != null) {
+            runProcess(executablePath, args);
+        } else {
+            print(command + ": command not found\n");
+        }
+    }
+
+    /**
+     * Search for an executable in PATH directories
+     */
+    private static String findExecutableInPath(String command, String[] pathDirs) {
+        for (String dir : pathDirs) {
+            String fullPath = dir + "/" + command;
+            Path path = Paths.get(fullPath);
+
+            if (Files.exists(path) && Files.isExecutable(path)) {
+                return fullPath;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Run an external process
+     */
+    private static void runProcess(String executablePath, String[] args) {
+        try {
+            // Build command array: executable + arguments
+            String[] commandArray = new String[args.length + 1];
+            commandArray[0] = executablePath;
+            System.arraycopy(args, 0, commandArray, 1, args.length);
+
+            ProcessBuilder processBuilder = new ProcessBuilder(commandArray);
+            processBuilder.inheritIO(); // Inherit stdin, stdout, stderr
+            Process process = processBuilder.start();
+            process.waitFor();
+        } catch (IOException | InterruptedException e) {
+            print("Error executing command: " + e.getMessage() + "\n");
+        }
+    }
+
+    /**
+     * Remove surrounding quotes from a string if present
+     */
+    private static String removeQuotes(String str) {
+        if (str.startsWith("\"") && str.endsWith("\"") && str.length() >= 2) {
+            return str.substring(1, str.length() - 1);
+        }
+        if (str.startsWith("'") && str.endsWith("'") && str.length() >= 2) {
+            return str.substring(1, str.length() - 1);
+        }
+        return str;
+    }
+
+    /**
+     * Print the shell prompt
+     */
+    private static void printPrompt() {
+        print("$ ");
+    }
+
+    /**
+     * Print a message to stdout
+     */
+    private static void print(String message) {
+        try {
+            System.out.write(message.getBytes());
             System.out.flush();
-            input = reader.readLine();
-            String[] array = input.split(" ");
-            if (array[0].equals("echo")) {
-                String retecho = "";
-                if (array.length == 2) {
-                    retecho = array[1];
-                    if (retecho.startsWith("\"") && retecho.endsWith("\"")) {
-                        retecho = retecho.substring(1, retecho.length() - 1);
-                    }
-                    retecho += "\n";
-                    System.out.write(retecho.getBytes());
-                    System.out.flush();
-                } else if (array.length > 2) {
-                    retecho = input.substring(4, input.length());
-                    retecho += "\n";
-                    System.out.write(retecho.getBytes());
-                    System.out.flush();
-                }
-            } else if (array[0].equals("type") && array.length == 2) {
-                String retString = "";
-                array[1] = array[1].trim();
-                if (array[1].equals("echo")) {
-                    System.out.write("echo is a shell builtin\n".getBytes());
-                    System.out.flush();
-                } else if (array[1].equals("exit")) {
-                    System.out.write("exit is a shell builtin\n".getBytes());
-                    System.out.flush();
-                } else if (array[1].equals("type")) {
-                    System.out.write("type is a shell builtin\n".getBytes());
-                    System.out.flush();
-                } else {
-                    retString += array[1];
-                    retString += ": not found\n";
-                    System.out.write(retString.getBytes());
-                    System.out.flush();
-                }
-
-            }else if (input.length() >= 1) {
-                String output = input + ": Unknown command\n";
-                System.out.write(output.getBytes());
-                System.out.flush();
-            } else continue;
+        } catch (IOException e) {
+            System.err.println("Error writing output: " + e.getMessage());
         }
     }
 }
-
